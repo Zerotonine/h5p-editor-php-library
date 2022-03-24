@@ -189,8 +189,10 @@ class H5PEditorAjax {
 
     // Make sure file is valid and mark it for cleanup at a later time
     if ($file->validate()) {
-      $file_id = $this->core->fs->saveFile($file, 0);
-      $this->storage->markFileForCleanup($file_id, 0);
+      // $file_id = $this->core->fs->saveFile($file, 0);
+      $file_id = $this->core->fs->saveFile($file, $contentId);
+      // $this->storage->markFileForCleanup($file_id, 0);
+      $this->storage->markFileForCleanup($file_id, $contentId);
     }
     $file->printResult();
   }
