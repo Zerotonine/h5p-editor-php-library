@@ -244,7 +244,7 @@ class H5PEditorAjax {
     $this->storage->removeTemporarilySavedFiles($this->core->h5pF->getUploadedH5pFolderPath());
 
     // Mark all files as temporary
-    foreach ($files as $file) {
+    foreach ($files->contentFiles as $file) {
       $this->storage->markFileForCleanup($file, $contentId, $nonce);
     }
 
