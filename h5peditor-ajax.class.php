@@ -141,7 +141,8 @@ class H5PEditorAjax {
 
         $uploadPath = func_get_arg(2);
         $contentId = func_get_arg(3);
-        $this->libraryUpload($uploadPath, $contentId);
+        $nonce = func_get_arg(4);
+        $this->libraryUpload($uploadPath, $contentId, $nonce);
         break;
 
       case H5PEditorEndpoints::FILES:
@@ -204,8 +205,9 @@ class H5PEditorAjax {
    *
    * @param {string} $uploadFilePath Path to the file that should be uploaded
    * @param {int} $contentId Content id of library
+   * @param string $nonce random bytes for identifying DB entries
    */
-  private function libraryUpload($uploadFilePath, $contentId) {
+  private function libraryUpload($uploadFilePath, $contentId, $nonce = null) {
     // Verify h5p upload
     if (!$uploadFilePath) {
       H5PCore::ajaxError($this->core->h5pF->t('Could not get posted H5P.'), 'NO_CONTENT_TYPE');
@@ -215,15 +217,16 @@ class H5PEditorAjax {
     $file = $this->saveFileTemporarily($uploadFilePath, TRUE);
     if (!$file) return;
 
-    $this->processContent($contentId);
+    $this->processContent($contentId, $nonce);
   }
 
   /**
    * Process H5P content from local H5P package.
    *
    * @param integer $contentId The Local Content ID / vid. TODO Remove when JI-366 is fixed
+   * @param string $random bytes for identifying DB entries
    */
-  private function processContent($contentId) {
+  private function processContent($contentId, $nonce = null) {
     // Check if the downloaded package is valid
     if (!$this->isValidPackage()) {
       return; // Validation errors
@@ -241,10 +244,9 @@ class H5PEditorAjax {
     $this->storage->removeTemporarilySavedFiles($this->core->h5pF->getUploadedH5pFolderPath());
 
     // Mark all files as temporary
-    // TODO: Uncomment once moveContentDirectory() is fixed. JI-366
-    /*foreach ($files as $file) {
-      $this->storage->markFileForCleanup($file, 0);
-    }*/
+    foreach ($files as $file) {
+      $this->storage->markFileForCleanup($file, $contentId, $nonce);
+    }
 
     H5PCore::ajaxSuccess(array(
       'h5p' => $this->core->mainJsonData,
